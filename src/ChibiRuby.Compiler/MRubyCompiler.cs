@@ -130,7 +130,11 @@ namespace ChibiRuby.Compiler
             {
                 if (encoding.Equals(Encoding.UTF8))
                 {
+#if NETSTANDARD2_0
                     utf8Source = utf8Source[encoding.GetPreamble().Length..];
+#else
+                    utf8Source = utf8Source[encoding.Preamble.Length..];
+#endif
                 }
                 else
                 {

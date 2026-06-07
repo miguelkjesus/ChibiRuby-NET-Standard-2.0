@@ -2156,7 +2156,8 @@ partial class MRubyState
                     {
                         Markers.Array();
                         bb = OperandBB.Read(ref sequence, ref callInfo.ProgramCounter);
-                        var values = CreateSpan(ref Unsafe.Add(ref registers, bb.A), bb.B);
+                        // GC-safe span over the managed stack array (NewArray below may allocate and move it).
+                        var values = Context.Stack.AsSpan(callInfo.StackPointer + bb.A, bb.B);
                         Unsafe.Add(ref registers, bb.A) = NewArray(values);
                         goto Next;
                     }
@@ -2164,7 +2165,8 @@ partial class MRubyState
                     {
                         Markers.Array2();
                         bbb = OperandBBB.Read(ref sequence, ref callInfo.ProgramCounter);
-                        var values = CreateSpan(ref Unsafe.Add(ref registers, bbb.B), bbb.C);
+                        // GC-safe span over the managed stack array (NewArray below may allocate and move it).
+                        var values = Context.Stack.AsSpan(callInfo.StackPointer + bbb.B, bbb.C);
                         Unsafe.Add(ref registers, bbb.A) = NewArray(values);
                         goto Next;
                     }
@@ -2276,7 +2278,8 @@ partial class MRubyState
                         EnsureNotFrozen(registerA);
 
                         var array = registerA.As<RArray>();
-                        array.PushRange(CreateSpan(ref Unsafe.Add(ref registers, bb.A + 1), bb.B));
+                        // GC-safe span over the managed stack array (PushRange below may allocate and move it).
+                        array.PushRange(Context.Stack.AsSpan(callInfo.StackPointer + bb.A + 1, bb.B));
                         goto Next;
                     }
                     case OpCode.ArySplat:
