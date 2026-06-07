@@ -1,4 +1,5 @@
 using System;
+using ChibiRuby.Polyfills;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -149,7 +150,7 @@ public class BuiltinResolver : IMRubyValueFormatterResolver
 
         if (type.IsArray)
         {
-            if (type.IsSZArray)
+            if (type.IsSZArray())
             {
                 formatterType = typeof(ArrayFormatter<>).MakeGenericType(type.GetElementType()!);
             }

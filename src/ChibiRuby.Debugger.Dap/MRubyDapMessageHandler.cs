@@ -801,7 +801,7 @@ public sealed class MRubyDapMessageHandler : IDebuggerClient, IDisposable
                 line = headers.Slice(sequenceReader.Position);
                 sequenceReader.Advance(sequenceReader.Remaining);
             }
-            if (line.Length > 0 && line.Slice(line.Length - 1).FirstSpan[0] == (byte)'\r')
+            if (line.Length > 0 && line.Slice(line.Length - 1).First.Span[0] == (byte)'\r')
             {
                 line = line.Slice(0, line.Length - 1);
             }
@@ -811,7 +811,7 @@ public sealed class MRubyDapMessageHandler : IDebuggerClient, IDisposable
             if (!IsContentLengthHeader(prefix)) continue;
 
             var rest = line.Slice(ContentLengthHeader.Length);
-            while (rest.Length > 0 && rest.FirstSpan[0] is (byte)' ' or (byte)'\t')
+            while (rest.Length > 0 && rest.First.Span[0] is (byte)' ' or (byte)'\t')
             {
                 rest = rest.Slice(1);
             }

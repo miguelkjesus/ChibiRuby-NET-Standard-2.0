@@ -534,10 +534,18 @@ ref struct Utf8JsonTokenizer
     byte ByteAt(int offset) => global::System.Runtime.CompilerServices.Unsafe.Add(ref HeadRef(), offset);
 
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    // NOTE: manual netstandard2.0 patch in this generated file - MemoryMarshal.CreateReadOnlySpan is absent on
+    // ns2.0. If this serializer is regenerated, re-apply the #else branch (or teach the generator to emit it).
     global::System.ReadOnlySpan<byte> SliceFrom(int offset, int len) =>
+#if NET7_0_OR_GREATER
         global::System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan(
             ref global::System.Runtime.CompilerServices.Unsafe.Add(ref HeadRef(), offset),
             len);
+#else
+        global::ChibiRuby.Polyfills.MemoryMarshalEx.CreateReadOnlySpan(
+            ref global::System.Runtime.CompilerServices.Unsafe.Add(ref HeadRef(), offset),
+            len);
+#endif
 
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     void SkipWhitespace()

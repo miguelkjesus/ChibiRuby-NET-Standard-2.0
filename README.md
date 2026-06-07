@@ -1,4 +1,6 @@
-# ChibiRuby (Backported to .NET Standard 2.0)
+# ChibiRuby
+
+_Backported to .NET Standard 2.0 by Claude Code (Opus 4.8)._
 
 ChibiRuby is a pure C# implementation of the [mruby](https://github.com/mruby/mruby) virtual machine. It lets Unity and .NET applications run Ruby scripts with the performance and extensibility of modern C#.
 
@@ -152,6 +154,9 @@ Please refer to the following for the [benchmark code](https://github.com/hadash
 | ChibiRuby.Serializer    | Converts between Ruby and C# objects                                              | [![NuGet](https://img.shields.io/nuget/v/ChibiRuby.Serializer)](https://www.nuget.org/packages/ChibiRuby.Serializer)  |
 | ChibiRuby.Debugger      | Protocol-agnostic debugger core (breakpoints, stepping, `binding.irb` suspension) | [![NuGet](https://img.shields.io/nuget/v/ChibiRuby.Debugger)](https://www.nuget.org/packages/ChibiRuby.Debugger) |
 | ChibiRuby.Debugger.Dap  | DAP server (TCP) for any DAP-compatible editor — see [Debugger](#debugger)        | [![NuGet](https://img.shields.io/nuget/v/ChibiRuby.Debugger.Dap)](https://www.nuget.org/packages/ChibiRuby.Debugger.Dap) |
+
+> [!NOTE]
+> The library packages target `netstandard2.0` (alongside `net8.0`, `net9.0`, and `net10.0`), so they run on .NET Framework 4.7.2+ as well as modern .NET and Unity.
 
 ### Unity
 

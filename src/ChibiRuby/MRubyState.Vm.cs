@@ -10,7 +10,7 @@ using ChibiRuby.StdLib;
 #if NET7_0_OR_GREATER
 using static System.Runtime.InteropServices.MemoryMarshal;
 #else
-using static ChibiRuby.Internal.MemoryMarshalEx;
+using static ChibiRuby.Polyfills.MemoryMarshalEx;
 #endif
 
 // ReSharper disable UnreachableSwitchArmDueToIntegerAnalysis
@@ -25,7 +25,7 @@ partial class MRubyState
         Send(self, methodId, ReadOnlySpan<MRubyValue>.Empty);
 
     public MRubyValue Send(MRubyValue self, Symbol methodId, MRubyValue arg0) =>
-        Send(self, methodId, MemoryMarshal.CreateReadOnlySpan(ref arg0, 1), null, null);
+        Send(self, methodId, CreateReadOnlySpan(ref arg0, 1), null, null);
 
     public MRubyValue Send(MRubyValue self, Symbol methodId, MRubyValue arg0, MRubyValue arg1)
     {
@@ -33,7 +33,7 @@ partial class MRubyState
         return Send(
             self,
             methodId,
-            MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue), MRubyValue>(ref args), 2),
+            CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue), MRubyValue>(ref args), 2),
             null,
             null);
     }
@@ -44,7 +44,7 @@ partial class MRubyState
         return Send(
             self,
             methodId,
-            MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue, MRubyValue), MRubyValue>(ref args), 3),
+            CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue, MRubyValue), MRubyValue>(ref args), 3),
             null,
             null);
     }
@@ -55,7 +55,7 @@ partial class MRubyState
         return Send(
             self,
             methodId,
-            MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue, MRubyValue, MRubyValue), MRubyValue>(ref args), 4),
+            CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue, MRubyValue, MRubyValue), MRubyValue>(ref args), 4),
             null,
             null);
     }
@@ -70,7 +70,7 @@ partial class MRubyState
         Send(self, methodId, ReadOnlySpan<MRubyValue>.Empty, null, block);
 
     public MRubyValue Send(MRubyValue self, Symbol methodId, MRubyValue arg0, RProc block) =>
-        Send(self, methodId, MemoryMarshal.CreateReadOnlySpan(ref arg0, 1), null, block);
+        Send(self, methodId, CreateReadOnlySpan(ref arg0, 1), null, block);
 
     public MRubyValue Send(MRubyValue self, Symbol methodId, MRubyValue arg0, MRubyValue arg1, RProc block)
     {
@@ -78,7 +78,7 @@ partial class MRubyState
         return Send(
             self,
             methodId,
-            MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue), MRubyValue>(ref args), 2),
+            CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue), MRubyValue>(ref args), 2),
             null,
             block);
     }
@@ -89,7 +89,7 @@ partial class MRubyState
         return Send(
             self,
             methodId,
-            MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue, MRubyValue), MRubyValue>(ref args), 3),
+            CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue, MRubyValue), MRubyValue>(ref args), 3),
             null,
             block);
     }
@@ -100,7 +100,7 @@ partial class MRubyState
         return Send(
             self,
             methodId,
-            MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue, MRubyValue, MRubyValue), MRubyValue>(ref args), 4),
+            CreateReadOnlySpan(ref Unsafe.As<(MRubyValue, MRubyValue, MRubyValue, MRubyValue), MRubyValue>(ref args), 4),
             null,
             block);
     }
@@ -258,7 +258,7 @@ partial class MRubyState
 
     public async Task<MRubyValue> LoadBytecodeFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        var bytecode = await File.ReadAllBytesAsync(filePath, cancellationToken);
+        var bytecode = await ChibiRuby.Polyfills.FileEx.ReadAllBytesAsync(filePath, cancellationToken);
         return LoadBytecode(bytecode);
     }
 
@@ -2156,7 +2156,8 @@ partial class MRubyState
                     {
                         Markers.Array();
                         bb = OperandBB.Read(ref sequence, ref callInfo.ProgramCounter);
-                        var values = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref registers, bb.A), bb.B);
+                        // GC-safe span over the managed stack array (NewArray below may allocate and move it).
+                        var values = Context.Stack.AsSpan(callInfo.StackPointer + bb.A, bb.B);
                         Unsafe.Add(ref registers, bb.A) = NewArray(values);
                         goto Next;
                     }
@@ -2164,7 +2165,8 @@ partial class MRubyState
                     {
                         Markers.Array2();
                         bbb = OperandBBB.Read(ref sequence, ref callInfo.ProgramCounter);
-                        var values = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref registers, bbb.B), bbb.C);
+                        // GC-safe span over the managed stack array (NewArray below may allocate and move it).
+                        var values = Context.Stack.AsSpan(callInfo.StackPointer + bbb.B, bbb.C);
                         Unsafe.Add(ref registers, bbb.A) = NewArray(values);
                         goto Next;
                     }
@@ -2276,7 +2278,8 @@ partial class MRubyState
                         EnsureNotFrozen(registerA);
 
                         var array = registerA.As<RArray>();
-                        array.PushRange(MemoryMarshal.CreateSpan(ref Unsafe.Add(ref registers, bb.A + 1), bb.B));
+                        // GC-safe span over the managed stack array (PushRange below may allocate and move it).
+                        array.PushRange(Context.Stack.AsSpan(callInfo.StackPointer + bb.A + 1, bb.B));
                         goto Next;
                     }
                     case OpCode.ArySplat:

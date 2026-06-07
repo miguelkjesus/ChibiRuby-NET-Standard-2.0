@@ -17,7 +17,11 @@ static class BomHelper
     {
         foreach (var encoding in encodings)
         {
+#if NETSTANDARD2_0
+            if (source.StartsWith(encoding.GetPreamble()))
+#else
             if (source.StartsWith(encoding.Preamble))
+#endif
             {
                 bomEncoding = encoding;
                 return true;

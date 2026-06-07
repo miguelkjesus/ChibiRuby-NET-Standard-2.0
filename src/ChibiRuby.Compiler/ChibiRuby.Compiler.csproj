@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0;net10.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;net10.0;netstandard2.0</TargetFrameworks>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <RuntimeIdentifiers>osx-arm64;osx-x64;linux-x64;linux-arm64;win-x64;android-arm64;android-x64;ios-arm64;iossimulator-arm64;browser-wasm</RuntimeIdentifiers>
@@ -17,12 +17,6 @@
       <ProjectReference Include="..\ChibiRuby\ChibiRuby.csproj" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-      <PackageReference Include="PolySharp" Version="1.15.0">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-    </ItemGroup>
 
     <ItemGroup>
       <None Include="runtimes\**\*.dll;runtimes\**\*.so;runtimes\**\*.dylib;runtimes\**\*.a">
@@ -43,4 +37,9 @@
         </None>
     </ItemGroup>
 
+
+    <Import Project="..\Polyfills.props" />
+    <ItemGroup>
+        <ProjectReference Include="..\ChibiRuby.Polyfills\ChibiRuby.Polyfills.csproj" />
+    </ItemGroup>
 </Project>

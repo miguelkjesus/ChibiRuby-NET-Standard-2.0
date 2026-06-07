@@ -43,7 +43,7 @@ namespace ChibiRuby.Compiler
                     MrcDiagnosticCode.GeneratorError => DiagnosticSeverity.GeneratorError,
                     _ => throw new ArgumentOutOfRangeException()
                 };
-                var message = Marshal.PtrToStringUTF8((IntPtr)nodePtr->Message);
+                var message = ChibiRuby.Polyfills.MarshalEx.PtrToStringUTF8((IntPtr)nodePtr->Message);
                 var descriptor = new DiagnosticsDescriptor(severity, nodePtr->Line, nodePtr->Column, message);
                 list.Add(descriptor);
                 nodePtr = nodePtr->Next;

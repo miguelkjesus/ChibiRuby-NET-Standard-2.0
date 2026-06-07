@@ -2,6 +2,11 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if NET7_0_OR_GREATER
+using static System.Runtime.InteropServices.MemoryMarshal;
+#else
+using static ChibiRuby.Polyfills.MemoryMarshalEx;
+#endif
 using Utf8StringInterpolation;
 
 namespace ChibiRuby.StdLib;
@@ -701,7 +706,7 @@ static class IntegerMembers
     public static MRubyValue Hash(MRubyState state, MRubyValue self)
     {
         var n = state.AsInteger(self);
-        return RString.GetHashCode(MemoryMarshal.CreateSpan(ref Unsafe.As<long, byte>(ref n), sizeof(long)));
+        return RString.GetHashCode(CreateSpan(ref Unsafe.As<long, byte>(ref n), sizeof(long)));
     }
 
     /// <summary>

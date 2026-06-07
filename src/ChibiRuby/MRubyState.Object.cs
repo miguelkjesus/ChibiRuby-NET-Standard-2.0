@@ -2,6 +2,12 @@ using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if NET7_0_OR_GREATER
+using static System.Runtime.InteropServices.MemoryMarshal;
+#else
+using static ChibiRuby.Polyfills.MemoryMarshalEx;
+#endif
+using System.Collections.Generic;
 using ChibiRuby.Internals;
 using ChibiRuby.StdLib;
 using Utf8StringInterpolation;
@@ -469,7 +475,7 @@ partial class MRubyState
         else
         {
             ref readonly var first = ref args;
-            newValues = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in first), 1);
+            newValues = CreateReadOnlySpan(ref Unsafe.AsRef(in first), 1);
         }
 
         var originalLength = array.Length;

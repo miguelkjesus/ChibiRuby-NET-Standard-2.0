@@ -91,7 +91,7 @@ namespace ChibiRuby.Compiler
 
         public async Task<CompilationResult> CompileFileAsync(string filePath, CancellationToken cancellationToken = default, bool debugInfo = true)
         {
-            var bytes = await File.ReadAllBytesAsync(filePath, cancellationToken);
+            var bytes = await ChibiRuby.Polyfills.FileEx.ReadAllBytesAsync(filePath, cancellationToken);
             return Compile(bytes,
                 filename: Path.GetFullPath(filePath),
                 debugInfo: debugInfo);
@@ -130,7 +130,11 @@ namespace ChibiRuby.Compiler
             {
                 if (encoding.Equals(Encoding.UTF8))
                 {
+#if NETSTANDARD2_0
+                    utf8Source = utf8Source[encoding.GetPreamble().Length..];
+#else
                     utf8Source = utf8Source[encoding.Preamble.Length..];
+#endif
                 }
                 else
                 {

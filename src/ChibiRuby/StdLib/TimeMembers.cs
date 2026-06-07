@@ -127,7 +127,7 @@ static class TimeMembers
             ticks += ConvertToTicks(mrb, usecValue, false) / 1_000_000;
         }
 
-        ticks += DateTime.UnixEpoch.ToLocalTime().Ticks;
+        ticks += new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).ToLocalTime().Ticks;
 
         DateTimeOffset dateTimeOffset;
         try
@@ -532,7 +532,7 @@ static class TimeMembers
     public static MRubyValue ToF(MRubyState mrb, MRubyValue self)
     {
         var dateTimeOffset = GetTimeData(mrb, self).DateTimeOffset;
-        return (dateTimeOffset - DateTimeOffset.UnixEpoch).TotalSeconds;
+        return (dateTimeOffset - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds;
     }
 
     /// <summary>
@@ -712,8 +712,8 @@ static class TimeMembers
         Span<byte> result = stackalloc byte[5];
 
         var format = Utf8String.Format($"{dateTimeOffset:zzz}");
-        format[0..3].CopyTo(result);
-        format[4..6].CopyTo(result[3..]);
+        format.AsSpan(0, 3).CopyTo(result);
+        format.AsSpan(4, 2).CopyTo(result.Slice(3));
         return mrb.NewString(result);
     }
 

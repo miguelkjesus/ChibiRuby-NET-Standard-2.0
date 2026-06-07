@@ -13,11 +13,13 @@
     <Project Path="src\ChibiRuby.Serializer\ChibiRuby.Serializer.csproj" Type="Classic C#" />
     <Project Path="src\ChibiRuby.SourceGenerator\ChibiRuby.SourceGenerator.csproj" Type="Classic C#" />
     <Project Path="src\ChibiRuby\ChibiRuby.csproj" Type="Classic C#" />
+    <Project Path="src\ChibiRuby.Polyfills\ChibiRuby.Polyfills.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests\ChibiRuby.Debugger.Tests\ChibiRuby.Debugger.Tests.csproj" Type="Classic C#" />
     <Project Path="tests\ChibiRuby.Debugger.Dap.Tests\ChibiRuby.Debugger.Dap.Tests.csproj" Type="Classic C#" />
     <Project Path="tests\ChibiRuby.Serializer.Tests\ChibiRuby.Serializer.Tests.csproj" Type="Classic C#" />
     <Project Path="tests\ChibiRuby.Tests\ChibiRuby.Tests.csproj" Type="Classic C#" />
+    <Project Path="tests\ChibiRuby.Polyfills.Tests\ChibiRuby.Polyfills.Tests.csproj" Type="Classic C#" />
   </Folder>
 </Solution>
