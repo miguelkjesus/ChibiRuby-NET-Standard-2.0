@@ -20,5 +20,6 @@
     <Project Path="tests\ChibiRuby.Debugger.Dap.Tests\ChibiRuby.Debugger.Dap.Tests.csproj" Type="Classic C#" />
     <Project Path="tests\ChibiRuby.Serializer.Tests\ChibiRuby.Serializer.Tests.csproj" Type="Classic C#" />
     <Project Path="tests\ChibiRuby.Tests\ChibiRuby.Tests.csproj" Type="Classic C#" />
+    <Project Path="tests\ChibiRuby.Polyfills.Tests\ChibiRuby.Polyfills.Tests.csproj" Type="Classic C#" />
   </Folder>
 </Solution>

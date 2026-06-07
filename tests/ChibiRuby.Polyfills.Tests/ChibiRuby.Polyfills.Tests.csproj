@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!--
+      Multi-targets net9.0 and net472 on purpose:
+      - net472 consumes the netstandard2.0 build of ChibiRuby.Polyfills, so SequenceReader<T>,
+        the Encoding/Stream shims, CreateSpan, KeyValuePair.Deconstruct, MarshalEx and TypeEx run
+        AS THE ns2.0 polyfill implementations.
+      - net9.0 binds the same test source to the BCL, asserting the polyfills match BCL behavior.
+      The net472 leg runs on Windows CI (and locally via Mono); net9.0 runs everywhere.
+    -->
+    <PropertyGroup>
+        <TargetFrameworks>net9.0;net472</TargetFrameworks>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="6.0.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+        <PackageReference Include="NUnit" Version="3.14.0" />
+        <PackageReference Include="NUnit.Analyzers" Version="3.9.0" />
+        <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    </ItemGroup>
+
+    <!-- Lets the net472 target compile on non-Windows hosts. -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="NUnit.Framework" />
+        <Using Include="System.Buffers" />
+        <Using Include="System.Text" />
+        <Using Include="ChibiRuby.Polyfills" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\ChibiRuby.Polyfills\ChibiRuby.Polyfills.csproj" />
+    </ItemGroup>
+
+</Project>
