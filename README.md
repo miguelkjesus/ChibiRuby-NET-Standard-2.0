@@ -1,4 +1,4 @@
-# ChibiRuby
+# ChibiRuby (Backported to .NET Framework 4.7.2)
 
 ChibiRuby is a pure C# implementation of the [mruby](https://github.com/mruby/mruby) virtual machine. It lets Unity and .NET applications run Ruby scripts with the performance and extensibility of modern C#.
 
