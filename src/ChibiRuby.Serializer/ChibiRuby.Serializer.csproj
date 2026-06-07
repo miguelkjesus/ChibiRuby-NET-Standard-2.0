@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0;net10.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;net10.0;netstandard2.0</TargetFrameworks>
         <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
         <Description>A plugin for ChibiRuby that enables conversion between C# and mruby objects.
@@ -25,5 +25,10 @@
               PackagePath="analyzers\dotnet\roslyn4.1\cs"
               Pack="true"
               Visible="false" />
+    </ItemGroup>
+
+    <Import Project="..\Polyfills.props" />
+    <ItemGroup>
+        <ProjectReference Include="..\ChibiRuby.Polyfills\ChibiRuby.Polyfills.csproj" />
     </ItemGroup>
 </Project>

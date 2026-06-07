@@ -535,9 +535,15 @@ ref struct Utf8JsonTokenizer
 
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     global::System.ReadOnlySpan<byte> SliceFrom(int offset, int len) =>
+#if NET7_0_OR_GREATER
         global::System.Runtime.InteropServices.MemoryMarshal.CreateReadOnlySpan(
             ref global::System.Runtime.CompilerServices.Unsafe.Add(ref HeadRef(), offset),
             len);
+#else
+        global::ChibiRuby.Polyfills.MemoryMarshalEx.CreateReadOnlySpan(
+            ref global::System.Runtime.CompilerServices.Unsafe.Add(ref HeadRef(), offset),
+            len);
+#endif
 
     [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     void SkipWhitespace()

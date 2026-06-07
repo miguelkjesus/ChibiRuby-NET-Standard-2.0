@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 #if NET7_0_OR_GREATER
 using static System.Runtime.InteropServices.MemoryMarshal;
 #else
-using static ChibiRuby.Internal.MemoryMarshalEx;
+using static ChibiRuby.Polyfills.MemoryMarshalEx;
 #endif
 
 namespace ChibiRuby;

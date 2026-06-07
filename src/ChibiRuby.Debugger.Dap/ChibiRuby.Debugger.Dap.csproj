@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0;net10.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;net10.0;netstandard2.0</TargetFrameworks>
         <Nullable>enable</Nullable>
         <LangVersion>13</LangVersion>
         <Description>Debug Adapter Protocol (DAP) server for ChibiRuby.Debugger. Plug into any DAP-compatible editor (VSCode, Zed, JetBrains, Neovim, etc.).</Description>
@@ -21,4 +21,9 @@
       <PackageReference Include="System.IO.Pipelines" Version="9.0.0" />
     </ItemGroup>
 
+
+    <Import Project="..\Polyfills.props" />
+    <ItemGroup>
+        <ProjectReference Include="..\ChibiRuby.Polyfills\ChibiRuby.Polyfills.csproj" />
+    </ItemGroup>
 </Project>

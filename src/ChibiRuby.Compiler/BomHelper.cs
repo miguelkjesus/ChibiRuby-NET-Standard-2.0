@@ -17,7 +17,7 @@ static class BomHelper
     {
         foreach (var encoding in encodings)
         {
-            if (source.StartsWith(encoding.Preamble))
+            if (source.StartsWith(encoding.GetPreamble()))
             {
                 bomEncoding = encoding;
                 return true;

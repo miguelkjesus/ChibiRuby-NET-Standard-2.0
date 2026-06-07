@@ -25,6 +25,7 @@ public class MultiConsumerValueTaskNotifier<T>
         }
 
         public CancellationTokenRegistration CancellationTokenRegistration { get; set; }
+        public CancellationToken CancellationToken { get; set; }
         ManualResetValueTaskSourceCore<T> core;
 
         public short Tag { get; private set; }
@@ -47,7 +48,7 @@ public class MultiConsumerValueTaskNotifier<T>
 
         public void SetCanceled()
         {
-            SetException(new OperationCanceledException(CancellationTokenRegistration.Token));
+            SetException(new OperationCanceledException(CancellationToken));
         }
 
         void Return()
@@ -94,6 +95,7 @@ public class MultiConsumerValueTaskNotifier<T>
         var node = WaiterNode.Rent(version);
         if (cancellation.CanBeCanceled)
         {
+            node.CancellationToken = cancellation;
             node.CancellationTokenRegistration = cancellation.UnsafeRegister(static state =>
             {
                 ((WaiterNode)state!).SetCanceled();

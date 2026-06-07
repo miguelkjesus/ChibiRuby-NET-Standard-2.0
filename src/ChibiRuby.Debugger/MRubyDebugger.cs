@@ -136,7 +136,7 @@ public sealed class MRubyDebugger(MRubyState mrb, MRubyCompiler compiler) : IMRu
             }
             else
             {
-                var set = new HashSet<int>(lines.Length);
+                var set = new HashSet<int>();
                 foreach (var l in lines) set.Add(l);
                 breakpoints[file] = set;
                 breakpointFileCount = breakpoints.Count;
