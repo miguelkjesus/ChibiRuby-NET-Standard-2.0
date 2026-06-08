@@ -2,7 +2,7 @@
 
 > [!IMPORTANT]
 > **This is an unofficial fork** that backports [hadashiA/ChibiRuby](https://github.com/hadashiA/ChibiRuby) to `netstandard2.0` (for .NET Framework 4.7.2+), originally with Claude Code (Opus 4.8).
-> It is distributed via **GitHub Packages** under `MiguelJesus.*` package IDs — **not** on nuget.org. Only the core runtime is published here: `MiguelJesus.ChibiRuby` and `MiguelJesus.ChibiRuby.Compiler` (plus their `MiguelJesus.ChibiRuby.Polyfills` dependency). For the CLI, Serializer, Debugger, and Unity packages, use the [official upstream packages](https://www.nuget.org/profiles/hadashiA) on nuget.org.
+> It is distributed via **GitHub Packages** under `MiguelJesus.*` package IDs — **not** on nuget.org. Published here: `MiguelJesus.ChibiRuby`, `MiguelJesus.ChibiRuby.Compiler`, and `MiguelJesus.ChibiRuby.Serializer` (plus their `MiguelJesus.ChibiRuby.Polyfills` dependency). For the CLI, Debugger, and Unity packages, use the [official upstream packages](https://www.nuget.org/profiles/hadashiA) on nuget.org.
 > See [Installation → NuGet](#nuget) for how to configure the feed.
 
 ChibiRuby is a pure C# implementation of the [mruby](https://github.com/mruby/mruby) virtual machine. It lets Unity and .NET applications run Ruby scripts with the performance and extensibility of modern C#.
@@ -149,18 +149,19 @@ Please refer to the following for the [benchmark code](https://github.com/hadash
 
 ### NuGet
 
-This backport publishes the **core runtime only**, to **GitHub Packages** (not nuget.org), under `MiguelJesus.*` IDs:
+This backport publishes to **GitHub Packages** (not nuget.org), under `MiguelJesus.*` IDs:
 
-| Package                          | Description                                    |
-|:---------------------------------|:-----------------------------------------------|
-| `MiguelJesus.ChibiRuby`          | Runtime package: a pure C# mruby VM.           |
-| `MiguelJesus.ChibiRuby.Compiler` | Ruby source compiler utility (native binding). |
-| `MiguelJesus.ChibiRuby.Polyfills`| netstandard2.0 polyfills (transitive dependency — pulled in automatically). |
+| Package                            | Description                                    |
+|:-----------------------------------|:-----------------------------------------------|
+| `MiguelJesus.ChibiRuby`            | Runtime package: a pure C# mruby VM.           |
+| `MiguelJesus.ChibiRuby.Compiler`   | Ruby source compiler utility (native binding). |
+| `MiguelJesus.ChibiRuby.Serializer` | Converts between Ruby and C# objects.          |
+| `MiguelJesus.ChibiRuby.Polyfills`  | netstandard2.0 polyfills (transitive dependency — pulled in automatically). |
 
 > [!NOTE]
 > The library packages target `netstandard2.0` (alongside `net8.0`, `net9.0`, and `net10.0`), so they run on .NET Framework 4.7.2+ as well as modern .NET and Unity.
 >
-> The CLI tool, Serializer, Debugger, Debugger.Dap, and Unity packages are **not** part of this backport feed — install those from the [official upstream packages](https://www.nuget.org/profiles/hadashiA) on nuget.org.
+> The CLI tool, Debugger, Debugger.Dap, and Unity packages are **not** part of this backport feed — install those from the [official upstream packages](https://www.nuget.org/profiles/hadashiA) on nuget.org.
 
 #### Configuring the GitHub Packages feed
 
@@ -1589,7 +1590,11 @@ Once host + editor are wired:
 
 ## Serializer
 
-Using the MRuby.Serializer package enables conversion between MRubyValue and C# objects.
+The `MiguelJesus.ChibiRuby.Serializer` package enables conversion between `MRubyValue` and C# objects. Install it from the [GitHub Packages feed](#nuget):
+
+```bash
+dotnet add package MiguelJesus.ChibiRuby.Serializer
+```
 
 ```cs
 // Deserialize (MRubyValue -> C#)
