@@ -1,0 +1,57 @@
+name: Publish to GitHub Packages
+
+# Publishes the netstandard2.0 backport (core packages only) to this fork's
+# GitHub Packages NuGet registry under the MiguelJesus.* package IDs.
+#
+# Scope: ChibiRuby + ChibiRuby.Compiler, plus ChibiRuby.Polyfills (a mandatory
+# transitive dependency of both). The source generators, Serializer, Debugger,
+# Debugger.Dap and Cli are intentionally NOT published here.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "dry-run: true = pack only, never push to GitHub Packages."
+        required: true
+        default: true
+        type: boolean
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            10.0.x
+
+      - run: dotnet build -c Release
+
+      - name: Pack core packages
+        run: |
+          dotnet pack src/ChibiRuby/ChibiRuby.csproj                     -c Release --no-build -o ./publish
+          dotnet pack src/ChibiRuby.Compiler/ChibiRuby.Compiler.csproj   -c Release --no-build -o ./publish
+          dotnet pack src/ChibiRuby.Polyfills/ChibiRuby.Polyfills.csproj -c Release --no-build -o ./publish
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget
+          path: ./publish
+
+      # GitHub Packages NuGet feed for this fork's owner. GITHUB_TOKEN with
+      # packages:write is sufficient; no extra secret needed.
+      - name: Push to GitHub Packages
+        if: ${{ github.event_name == 'release' || github.event.inputs.dry-run == 'false' }}
+        run: |
+          dotnet nuget push "./publish/*.nupkg" \
+            --api-key ${{ secrets.GITHUB_TOKEN }} \
+            --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json \
+            --skip-duplicate

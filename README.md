@@ -1,6 +1,9 @@
-# ChibiRuby
+# ChibiRuby (netstandard2.0 backport)
 
-_Backported to .NET Standard 2.0 by Claude Code (Opus 4.8)._
+> [!IMPORTANT]
+> **This is an unofficial fork** that backports [hadashiA/ChibiRuby](https://github.com/hadashiA/ChibiRuby) to `netstandard2.0` (for .NET Framework 4.7.2+), originally with Claude Code (Opus 4.8).
+> It is distributed via **GitHub Packages** under `MiguelJesus.*` package IDs — **not** on nuget.org. Only the core runtime is published here: `MiguelJesus.ChibiRuby` and `MiguelJesus.ChibiRuby.Compiler` (plus their `MiguelJesus.ChibiRuby.Polyfills` dependency). For the CLI, Serializer, Debugger, and Unity packages, use the [official upstream packages](https://www.nuget.org/profiles/hadashiA) on nuget.org.
+> See [Installation → NuGet](#nuget) for how to configure the feed.
 
 ChibiRuby is a pure C# implementation of the [mruby](https://github.com/mruby/mruby) virtual machine. It lets Unity and .NET applications run Ruby scripts with the performance and extensibility of modern C#.
 
@@ -52,11 +55,11 @@ end
 
 ## Quick Start
 
-In a .NET project, install the runtime and compiler packages:
+In a .NET project, first [configure the GitHub Packages feed](#nuget), then install the runtime and compiler packages:
 
 ```bash
-dotnet add package ChibiRuby
-dotnet add package ChibiRuby.Compiler
+dotnet add package MiguelJesus.ChibiRuby
+dotnet add package MiguelJesus.ChibiRuby.Compiler
 ```
 
 Then compile and execute Ruby source from C#:
@@ -146,17 +149,54 @@ Please refer to the following for the [benchmark code](https://github.com/hadash
 
 ### NuGet
 
-| Package                 | Description                                                                       | Latest version |
-|:------------------------|:----------------------------------------------------------------------------------|----------------|
-| ChibiRuby               | Runtime package: a pure C# mruby VM.                                              | [![NuGet](https://img.shields.io/nuget/v/ChibiRuby)](https://www.nuget.org/packages/ChibiRuby) |
-| ChibiRuby.Compiler      | Ruby source compiler utility (native binding).                                    | [![NuGet](https://img.shields.io/nuget/v/ChibiRuby.Compiler)](https://www.nuget.org/packages/ChibiRuby.Compiler)   |
-| ChibiRuby.Cli           | dotnet tool with subcommands (e.g. `compile`) for ChibiRuby workflows             | [![NuGet](https://img.shields.io/nuget/v/ChibiRuby.Cli)](https://www.nuget.org/packages/ChibiRuby.Cli) |
-| ChibiRuby.Serializer    | Converts between Ruby and C# objects                                              | [![NuGet](https://img.shields.io/nuget/v/ChibiRuby.Serializer)](https://www.nuget.org/packages/ChibiRuby.Serializer)  |
-| ChibiRuby.Debugger      | Protocol-agnostic debugger core (breakpoints, stepping, `binding.irb` suspension) | [![NuGet](https://img.shields.io/nuget/v/ChibiRuby.Debugger)](https://www.nuget.org/packages/ChibiRuby.Debugger) |
-| ChibiRuby.Debugger.Dap  | DAP server (TCP) for any DAP-compatible editor — see [Debugger](#debugger)        | [![NuGet](https://img.shields.io/nuget/v/ChibiRuby.Debugger.Dap)](https://www.nuget.org/packages/ChibiRuby.Debugger.Dap) |
+This backport publishes the **core runtime only**, to **GitHub Packages** (not nuget.org), under `MiguelJesus.*` IDs:
+
+| Package                          | Description                                    |
+|:---------------------------------|:-----------------------------------------------|
+| `MiguelJesus.ChibiRuby`          | Runtime package: a pure C# mruby VM.           |
+| `MiguelJesus.ChibiRuby.Compiler` | Ruby source compiler utility (native binding). |
+| `MiguelJesus.ChibiRuby.Polyfills`| netstandard2.0 polyfills (transitive dependency — pulled in automatically). |
 
 > [!NOTE]
 > The library packages target `netstandard2.0` (alongside `net8.0`, `net9.0`, and `net10.0`), so they run on .NET Framework 4.7.2+ as well as modern .NET and Unity.
+>
+> The CLI tool, Serializer, Debugger, Debugger.Dap, and Unity packages are **not** part of this backport feed — install those from the [official upstream packages](https://www.nuget.org/profiles/hadashiA) on nuget.org.
+
+#### Configuring the GitHub Packages feed
+
+GitHub Packages requires authentication to restore NuGet packages — **even for public packages** — so consumers must register the feed once with a [GitHub Personal Access Token](https://github.com/settings/tokens) that has the `read:packages` scope:
+
+```bash
+dotnet nuget add source "https://nuget.pkg.github.com/miguelkjesus/index.json" \
+  --name miguelkjesus-github \
+  --username <your-github-username> \
+  --password <PAT-with-read:packages> \
+  --store-password-in-clear-text
+```
+
+Alternatively, add a `nuget.config` next to your solution:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <add key="miguelkjesus-github" value="https://nuget.pkg.github.com/miguelkjesus/index.json" />
+  </packageSources>
+  <packageSourceCredentials>
+    <miguelkjesus-github>
+      <add key="Username" value="%GITHUB_USERNAME%" />
+      <add key="ClearTextPassword" value="%GITHUB_TOKEN%" />
+    </miguelkjesus-github>
+  </packageSourceCredentials>
+</configuration>
+```
+
+After the feed is configured, install the packages:
+
+```bash
+dotnet add package MiguelJesus.ChibiRuby
+dotnet add package MiguelJesus.ChibiRuby.Compiler
+```
 
 ### Unity
 
@@ -264,8 +304,8 @@ result.IntegerValue //=> 55
 #### Option B: Use the Compiler Library at Runtime
 
 ```bash
-dotnet add package ChibiRuby
-dotnet add package ChibiRuby.Compiler
+dotnet add package MiguelJesus.ChibiRuby
+dotnet add package MiguelJesus.ChibiRuby.Compiler
 ```
 
 ```cs
@@ -361,10 +401,10 @@ NOTE: This is a wrapper for native compilers. Currently, the following platforms
 | WebAssembly  | wasm32 (Unity WebGL / .NET Browser WASM) | `browser-wasm`                          |
 
 ```bash
-dotnet add package ChibiRuby.Compiler
+dotnet add package MiguelJesus.ChibiRuby.Compiler
 ```
 
-**Unity**: install `ChibiRuby.Compiler` via [NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity) (v4.3.0 or later). The native compiler binaries (`libmruby.dylib` / `.so` / `.dll`) are bundled in the NuGet package and resolved automatically.
+**Unity**: install the upstream `ChibiRuby.Compiler` via [NuGetForUnity](https://github.com/GlitchEnzo/NuGetForUnity) (v4.3.0 or later) — Unity consumption is not covered by this GitHub Packages backport. The native compiler binaries (`libmruby.dylib` / `.so` / `.dll`) are bundled in the NuGet package and resolved automatically.
 
 If you also want the Editor extension that auto-imports `.rb` / `.mrb` files as `TextAsset` subassets, additionally install the Unity package. Open Window > Package Manager, click [+] > Add package from git URL, and enter:
 

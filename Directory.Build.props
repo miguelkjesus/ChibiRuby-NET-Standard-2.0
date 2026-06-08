@@ -1,13 +1,24 @@
 <Project>
     <PropertyGroup>
         <!-- NuGet Packaging -->
+        <!--
+            This is an unofficial netstandard2.0 backport. Package IDs are prefixed with
+            "MiguelJesus." so they don't collide with hadashiA's official ChibiRuby packages
+            on nuget.org. AssemblyName/RootNamespace are intentionally left as the project name
+            (e.g. ChibiRuby) so the assemblies stay drop-in compatible. ProjectReferences resolve
+            their NuGet dependency on the *referenced project's* PackageId, so the prefixed
+            packages automatically depend on each other's prefixed IDs.
+        -->
+        <PackageId>MiguelJesus.$(MSBuildProjectName)</PackageId>
         <PackageVersion>1.3.0</PackageVersion>
-        <Authors>hadashiA</Authors>
-        <PackageProjectUrl>https://github.com/hadashiA/ChibiRuby</PackageProjectUrl>
+        <Authors>Miguel Jesus</Authors>
+        <Copyright>Original work Copyright (c) 2024 hadashiA. netstandard2.0 backport (c) 2026 Miguel Jesus.</Copyright>
+        <PackageProjectUrl>https://github.com/miguelkjesus/ChibiRuby-NET-Standard-2.0</PackageProjectUrl>
         <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Description>A new mruby virtual machine implemented in C#.</Description>
+        <Description>Unofficial netstandard2.0 / .NET Framework 4.7.2 backport of ChibiRuby (a pure-C# mruby VM by hadashiA).</Description>
+        <PackageTags>ruby;mruby;vm;netstandard2.0;backport</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
