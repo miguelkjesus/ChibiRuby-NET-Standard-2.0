@@ -10,7 +10,7 @@
             packages automatically depend on each other's prefixed IDs.
         -->
         <PackageId>MiguelJesus.$(MSBuildProjectName)</PackageId>
-        <PackageVersion>1.3.0</PackageVersion>
+        <PackageVersion>1.3.1</PackageVersion>
         <Authors>Miguel Jesus</Authors>
         <Copyright>Original work Copyright (c) 2024 hadashiA. netstandard2.0 backport (c) 2026 Miguel Jesus.</Copyright>
         <PackageProjectUrl>https://github.com/miguelkjesus/ChibiRuby-NET-Standard-2.0</PackageProjectUrl>
