@@ -11,12 +11,26 @@ public static class MemoryMarshalEx
     // pinned: true to safely take a pointer get a movable array here; pin explicitly via 'fixed' instead.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T[] AllocateUninitializedArray<T>(int length, bool pinned = false) => new T[length];
-    // WARNING: unlike the BCL MemoryMarshal.CreateSpan, the returned span is built from a raw pointer and is
-    // NOT GC-tracked. Only use when 'reference' points at fixed memory (stack locals, or a pinned/fixed array).
-    // Do NOT use over a movable managed-heap array whose contents may be read across an allocation/GC.
+    // WARNING: CreateSpan builds the span from a raw pointer and is NOT GC-tracked. It only works for
+    // *unmanaged* T — netstandard2.0's System.Memory Span<T>(void*, int) ctor throws
+    // "Only value types without pointers or references are supported" for any T that contains managed
+    // references. Only use over fixed memory (stack locals / pinned-or-fixed arrays) of unmanaged elements.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe Span<T> CreateSpan<T>(scoped ref T reference, int length) => new Span<T>(Unsafe.AsPointer(ref reference), length);
+
+    // Read-only span over 'length' contiguous elements starting at 'reference'.
+    // Unlike CreateSpan this is valid for *managed* T too: the slow-span ReadOnlySpan<T>(void*, int) ctor
+    // rejects reference-containing T (e.g. MRubyValue), so instead of aliasing through a pointer we copy the
+    // run into a GC-tracked array. Every caller consumes the result read-only, so the copy is observationally
+    // equivalent. (net7+ uses the zero-copy BCL MemoryMarshal.CreateReadOnlySpan instead of this polyfill.)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe ReadOnlySpan<T> CreateReadOnlySpan<T>(scoped ref T reference, int length) => new ReadOnlySpan<T>(Unsafe.AsPointer(ref reference), length);
+    public static ReadOnlySpan<T> CreateReadOnlySpan<T>(scoped ref T reference, int length)
+    {
+        if (length == 0) return ReadOnlySpan<T>.Empty;
+        var copy = new T[length];
+        for (var i = 0; i < length; i++)
+            copy[i] = Unsafe.Add(ref reference, i);
+        return copy;
+    }
 }
 #endif
