@@ -19,10 +19,12 @@
       </ProjectReference>
     </ItemGroup>
 
-    <!-- Bundle SourceGenerator -->
+    <!-- Bundle SourceGenerator. Unversioned analyzers\dotnet\cs (not roslyn4.1):
+         the generator targets the classic ISourceGenerator API (Roslyn 3.8+), so a
+         single assembly works on every host compiler, including Mono msbuild's csc 3.9. -->
     <ItemGroup>
         <None Include="..\ChibiRuby.Serializer.SourceGenerator\bin\$(Configuration)\netstandard2.0\ChibiRuby.Serializer.SourceGenerator.dll"
-              PackagePath="analyzers\dotnet\roslyn4.1\cs"
+              PackagePath="analyzers\dotnet\cs"
               Pack="true"
               Visible="false" />
     </ItemGroup>

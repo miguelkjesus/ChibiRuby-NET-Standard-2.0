@@ -1,63 +1,87 @@
 ﻿using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ChibiRuby.Serializer.SourceGenerator;
 
+// Implemented against the classic ISourceGenerator API (Roslyn 3.8+) rather than
+// IIncrementalGenerator (Roslyn 4.x) so the generator can run under older host
+// compilers — e.g. Mono msbuild ships csc 3.9, which .NET Framework consumers of
+// the netstandard2.0 backport are likely to use. Modern hosts still support
+// ISourceGenerator, so a single assembly packed at analyzers/dotnet/cs serves all.
 [Generator]
-public class ChibiRubySerializerSourceGenerator : IIncrementalGenerator
+public class ChibiRubySerializerSourceGenerator : ISourceGenerator
 {
-    public void Initialize(IncrementalGeneratorInitializationContext context)
+    class SyntaxReceiver : ISyntaxReceiver
     {
-        var serializableProvider = context.SyntaxProvider
-            .ForAttributeWithMetadataName(
-                "ChibiRuby.Serializer.MRubyObjectAttribute",
-                static (node, cancellation) =>
-                    node is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax,
-                static (context, cancellation) => context);
-            // .Combine(context.CompilationProvider);
-            //.WithComparer(Comparer.Instance)
+        public List<TypeDeclarationSyntax> CandidateTypes { get; } = [];
 
-        context.RegisterSourceOutput(
-            context.CompilationProvider.Combine(serializableProvider.Collect()),
-            (productionContext, t) =>
+        public void OnVisitSyntaxNode(SyntaxNode node)
+        {
+            if (node is (ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax)
+                and TypeDeclarationSyntax { AttributeLists.Count: > 0 } typeDeclaration)
             {
-                var (compilation, list) = t;
-                var references = ReferenceSymbols.Create(compilation);
-                if (references is null)
-                {
-                    return;
-                }
+                CandidateTypes.Add(typeDeclaration);
+            }
+        }
+    }
 
-                var stringBuilder = new StringBuilder();
+    public void Initialize(GeneratorInitializationContext context)
+    {
+        context.RegisterForSyntaxNotifications(static () => new SyntaxReceiver());
+    }
 
-                foreach (var x in list)
-                {
-                    var typeMeta = new MRubyObjectTypeMeta(
-                        (TypeDeclarationSyntax)x.TargetNode,
-                        (INamedTypeSymbol)x.TargetSymbol,
-                        x.Attributes.First(),
-                        references);
+    public void Execute(GeneratorExecutionContext context)
+    {
+        if (context.SyntaxReceiver is not SyntaxReceiver receiver) return;
 
-                    if (TryEmitMRubyObjectType(typeMeta, stringBuilder, references, productionContext))
-                    {
-                        var fullType = typeMeta.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-                            .Replace("global::", "")
-                            .Replace("<", "_")
-                            .Replace(">", "_");
+        var references = ReferenceSymbols.Create(context.Compilation);
+        if (references is null)
+        {
+            return;
+        }
 
-                        productionContext.AddSource($"{fullType}.g.cs", stringBuilder.ToString());
-                    }
-                    stringBuilder.Clear();
-                }
-            });
+        var stringBuilder = new StringBuilder();
+        var processed = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+
+        foreach (var syntax in receiver.CandidateTypes)
+        {
+            context.CancellationToken.ThrowIfCancellationRequested();
+
+            var semanticModel = context.Compilation.GetSemanticModel(syntax.SyntaxTree);
+            if (semanticModel.GetDeclaredSymbol(syntax, context.CancellationToken) is not INamedTypeSymbol symbol)
+            {
+                continue;
+            }
+
+            var attribute = symbol.GetAttributes().FirstOrDefault(x =>
+                SymbolEqualityComparer.Default.Equals(x.AttributeClass, references.MRubyObjectAttribute));
+            if (attribute is null) continue;
+
+            // partial types surface once per declaration; emit only once per symbol
+            if (!processed.Add(symbol)) continue;
+
+            var typeMeta = new MRubyObjectTypeMeta(syntax, symbol, attribute, references);
+
+            if (TryEmitMRubyObjectType(typeMeta, stringBuilder, references, context))
+            {
+                var fullType = typeMeta.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                    .Replace("global::", "")
+                    .Replace("<", "_")
+                    .Replace(">", "_");
+
+                context.AddSource($"{fullType}.g.cs", stringBuilder.ToString());
+            }
+            stringBuilder.Clear();
+        }
     }
 
     static bool TryEmitMRubyObjectType(
         MRubyObjectTypeMeta typeMeta,
         StringBuilder stringBuilder,
         ReferenceSymbols references,
-        in SourceProductionContext context)
+        in GeneratorExecutionContext context)
     {
         try
         {
@@ -177,7 +201,7 @@ partial {{typeDeclarationKeyword}} {{typeMeta.TypeName}}
         MRubyObjectTypeMeta typeMeta,
         StringBuilder stringBuilder,
         ReferenceSymbols references,
-        in SourceProductionContext context)
+        in GeneratorExecutionContext context)
     {
         var returnType = typeMeta.Symbol.IsValueType
             ? typeMeta.FullTypeName
@@ -215,7 +239,7 @@ partial {{typeDeclarationKeyword}} {{typeMeta.TypeName}}
         return true;
     }
 
-    static bool TryEmitRegisterMethod(MRubyObjectTypeMeta typeMeta, StringBuilder stringBuilder, in SourceProductionContext context)
+    static bool TryEmitRegisterMethod(MRubyObjectTypeMeta typeMeta, StringBuilder stringBuilder, in GeneratorExecutionContext context)
     {
         stringBuilder.AppendLine($$"""
     [global::ChibiRuby.Serializer.Preserve]
@@ -232,7 +256,7 @@ partial {{typeDeclarationKeyword}} {{typeMeta.TypeName}}
         MRubyObjectTypeMeta typeMeta,
         StringBuilder stringBuilder,
         ReferenceSymbols references,
-        in SourceProductionContext context)
+        in GeneratorExecutionContext context)
     {
         var inputType = typeMeta.Symbol.IsValueType
             ? typeMeta.FullTypeName
@@ -277,7 +301,7 @@ partial {{typeDeclarationKeyword}} {{typeMeta.TypeName}}
         MRubyObjectTypeMeta typeMeta,
         StringBuilder stringBuilder,
         ReferenceSymbols references,
-        in SourceProductionContext context)
+        in GeneratorExecutionContext context)
     {
         if (!TryGetConstructor(typeMeta, references, in context,
                 out var selectedConstructor,
@@ -417,7 +441,7 @@ partial {{typeDeclarationKeyword}} {{typeMeta.TypeName}}
     static bool TryGetConstructor(
         MRubyObjectTypeMeta typeMeta,
         ReferenceSymbols reference,
-        in SourceProductionContext context,
+        in GeneratorExecutionContext context,
         out IMethodSymbol? selectedConstructor,
         out IReadOnlyList<MRubyObjectMemberMeta> constructedMembers)
     {

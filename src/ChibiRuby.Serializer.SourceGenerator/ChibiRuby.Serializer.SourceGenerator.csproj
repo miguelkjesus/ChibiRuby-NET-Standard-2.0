@@ -14,7 +14,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.0"/>
+        <!-- 3.9.0 (not 4.x): the generator implements the classic ISourceGenerator API so
+             old host compilers can load it — Mono msbuild ships csc 3.9, the typical
+             toolchain for the .NET Framework consumers this netstandard2.0 backport targets. -->
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.9.0"/>
     </ItemGroup>
 
     <ItemGroup>
